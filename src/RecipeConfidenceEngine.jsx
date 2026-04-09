@@ -1,8 +1,5 @@
 import { useState, useRef, useCallback } from "react";
 
-// ============================================================
-// DEMO DATA — used when no JSON file is loaded
-// ============================================================
 const DEMO_RECIPES = [
   { id: 1, title: "Marry Me Chicken", source: "AllRecipes", rating: 4.9, reviews: 12847, category: "Dinner", time: "45 min", confidence: 99.7, description: "Creamy sun-dried tomato chicken that's earned its legendary status", url: "" },
   { id: 2, title: "Birria Tacos", source: "AllRecipes", rating: 4.8, reviews: 8932, category: "Dinner", time: "3 hrs", confidence: 99.4, description: "Slow-braised beef in a rich chile consommé with melted cheese", url: "" },
@@ -26,9 +23,6 @@ const DEMO_RECIPES = [
   { id: 20, title: "Chocolate Lava Cake", source: "AllRecipes", rating: 4.7, reviews: 4567, category: "Baking", time: "25 min", confidence: 98.9, description: "Molten-centered individual cakes that look impossible but aren't", url: "" },
 ];
 
-// ============================================================
-// EMOJI MAPPING — auto-assigns icons based on recipe title
-// ============================================================
 const EMOJI_MAP = [
   [/chicken|poultry/i, "🍗"], [/taco|burrito|enchilada|tortilla/i, "🌮"],
   [/bread|loaf|baguette|sourdough/i, "🍞"], [/steak|beef|wellington/i, "🥩"],
@@ -43,8 +37,7 @@ const EMOJI_MAP = [
   [/muffin|scone/i, "🫐"], [/lemon/i, "🍋"], [/chocolate/i, "🍫"],
   [/coconut/i, "🥥"], [/bbq|grill|barbecue|smoke/i, "🔥"],
   [/breakfast|brunch/i, "🍳"], [/sandwich|sub|wrap/i, "🥪"],
-  [/smoothie|shake|drink/i, "🥤"], [/ice cream|gelato|sorbet/i, "🍨"],
-  [/banana/i, "🍌"], [/apple/i, "🍎"], [/corn/i, "🌽"],
+  [/banana/i, "🍌"], [/apple/i, "🍎"],
 ];
 
 function getEmoji(title) {
@@ -54,181 +47,114 @@ function getEmoji(title) {
   return "🍽️";
 }
 
-// ============================================================
-// COMPONENTS
-// ============================================================
-function ConfidenceMeter({ value }) {
-  const color = value >= 99 ? "#22c55e" : value >= 97 ? "#84cc16" : value >= 95 ? "#eab308" : "#f97316";
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <div style={{ width: 60, height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ width: `${value}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.6s ease" }} />
-      </div>
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color, fontWeight: 700 }}>{value.toFixed(1)}%</span>
-    </div>
-  );
+function getTier(confidence) {
+  if (confidence >= 99) return { label: "Proven", color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" };
+  if (confidence >= 97) return { label: "Strong", color: "#15803d", bg: "#f0fdf4", border: "#86efac" };
+  if (confidence >= 95) return { label: "Solid", color: "#b45309", bg: "#fffbeb", border: "#fde68a" };
+  return { label: "Good", color: "#c2410c", bg: "#fff7ed", border: "#fed7aa" };
 }
 
-function StarDisplay({ rating }) {
-  const full = Math.floor(rating);
-  const partial = rating - full;
+function RecipeModal({ recipe, onClose }) {
+  if (!recipe) return null;
+  const tier = getTier(recipe.confidence);
+  const emoji = getEmoji(recipe.title);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-      {[...Array(5)].map((_, i) => (
-        <span key={i} style={{ fontSize: 14, color: i < full ? "#f59e0b" : i === full && partial > 0 ? "#f59e0b" : "#2a2a4a", opacity: i < full ? 1 : i === full && partial > 0 ? partial : 0.3 }}>★</span>
-      ))}
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "#94a3b8", marginLeft: 4 }}>{rating}</span>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 20, padding: 28, maxWidth: 500, width: "100%", maxHeight: "88vh", overflowY: "auto", position: "relative", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "#f1f5f9", border: "none", borderRadius: 50, width: 32, height: 32, color: "#64748b", fontSize: 18, cursor: "pointer" }}>×</button>
+        <div style={{ fontSize: 44, marginBottom: 10 }}>{emoji}</div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: tier.bg, border: `1px solid ${tier.border}`, borderRadius: 20, padding: "3px 10px", marginBottom: 10 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: tier.color, display: "inline-block" }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: tier.color }}>{tier.label} Recipe</span>
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: "#0f172a", marginBottom: 6, lineHeight: 1.3, paddingRight: 40 }}>{recipe.title}</h2>
+        <p style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6, marginBottom: 20 }}>{recipe.description}</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
+          {[
+            { label: "Rating", value: `${recipe.rating}★` },
+            { label: "Reviews", value: recipe.reviews >= 1000 ? `${(recipe.reviews / 1000).toFixed(0)}k` : recipe.reviews },
+            { label: "Confidence", value: `${recipe.confidence.toFixed(1)}%` },
+          ].map(s => (
+            <div key={s.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{s.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#0f172a" }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
+        {recipe.time && recipe.time !== "N/A" && (
+          <div style={{ fontSize: 14, color: "#475569", marginBottom: 16 }}>⏱ {recipe.time} cook time</div>
+        )}
+        {recipe.ingredients && recipe.ingredients.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <h4 style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Ingredients</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {recipe.ingredients.map((ing, i) => (
+                <div key={i} style={{ fontSize: 13, color: "#475569", padding: "6px 10px", background: "#f8fafc", borderRadius: 6 }}>{ing}</div>
+              ))}
+            </div>
+          </div>
+        )}
+        {recipe.url ? (
+          <a href={recipe.url} target="_blank" rel="noopener noreferrer"
+            style={{ display: "block", textAlign: "center", background: "#16a34a", borderRadius: 12, padding: "13px 20px", color: "#fff", fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
+            View Full Recipe →
+          </a>
+        ) : (
+          <div style={{ textAlign: "center", background: "#f1f5f9", borderRadius: 12, padding: "13px 20px", color: "#94a3b8", fontSize: 14 }}>
+            Full recipe link available with live data
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 function RecipeCard({ recipe, index, onSelect }) {
   const [hovered, setHovered] = useState(false);
-  const tierColor = recipe.confidence >= 99 ? "#22c55e" : recipe.confidence >= 97 ? "#84cc16" : recipe.confidence >= 95 ? "#eab308" : "#f97316";
-  const tierLabel = recipe.confidence >= 99 ? "PROVEN" : recipe.confidence >= 97 ? "STRONG" : recipe.confidence >= 95 ? "SOLID" : "EMERGING";
+  const tier = getTier(recipe.confidence);
   const emoji = getEmoji(recipe.title);
-
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onSelect(recipe)}
       style={{
-        background: hovered ? "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%)" : "#0d0d1f",
-        border: `1px solid ${hovered ? tierColor + "44" : "#1a1a3a"}`,
-        borderRadius: 16, padding: 20, cursor: "pointer",
-        transition: "all 0.3s ease",
-        transform: hovered ? "translateY(-2px)" : "none",
-        boxShadow: hovered ? `0 8px 32px ${tierColor}15` : "none",
-        animation: `fadeSlideIn 0.4s ease ${Math.min(index * 0.04, 1)}s both`,
-        position: "relative", overflow: "hidden",
+        background: "#fff", border: `1.5px solid ${hovered ? tier.border : "#e2e8f0"}`,
+        borderRadius: 16, padding: 20, cursor: "pointer", transition: "all 0.2s ease",
+        transform: hovered ? "translateY(-3px)" : "none",
+        boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.04)",
+        animation: `fadeUp 0.4s ease ${Math.min(index * 0.04, 0.6)}s both`,
       }}
     >
-      <div style={{ position: "absolute", top: 12, right: 12, background: tierColor + "18", border: `1px solid ${tierColor}33`, borderRadius: 6, padding: "3px 8px" }}>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, color: tierColor, letterSpacing: 1.5 }}>{tierLabel}</span>
-      </div>
-
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <div style={{ width: 52, height: 52, background: "#1a1a3a", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>
-          {emoji}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#e2e8f0", fontFamily: "'Bricolage Grotesque', sans-serif", lineHeight: 1.3 }}>{recipe.title}</h3>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-            {recipe.description || "Crowd-vetted recipe with high confidence scoring"}
-          </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+        <span style={{ fontSize: 32 }}>{emoji}</span>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: tier.bg, border: `1px solid ${tier.border}`, borderRadius: 20, padding: "3px 10px" }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: tier.color, display: "inline-block", flexShrink: 0 }} />
+          <span style={{ fontSize: 11, fontWeight: 600, color: tier.color }}>{tier.label}</span>
         </div>
       </div>
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14, alignItems: "center" }}>
-        <span style={{ background: "#1a1a3a", borderRadius: 6, padding: "3px 8px", fontSize: 11, color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>{recipe.source}</span>
-        {recipe.time && recipe.time !== "N/A" && (
-          <span style={{ background: "#1a1a3a", borderRadius: 6, padding: "3px 8px", fontSize: 11, color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>{recipe.time}</span>
-        )}
-        <span style={{ background: "#1a1a3a", borderRadius: 6, padding: "3px 8px", fontSize: 11, color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>{recipe.category || "Recipe"}</span>
+      <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 700, color: "#0f172a", lineHeight: 1.3 }}>{recipe.title}</h3>
+      <p style={{ margin: "0 0 14px", fontSize: 13, color: "#64748b", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+        {recipe.description}
+      </p>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+        {recipe.category && <span style={{ background: "#f1f5f9", borderRadius: 6, padding: "3px 8px", fontSize: 11, color: "#64748b", fontWeight: 500 }}>{recipe.category}</span>}
+        {recipe.time && recipe.time !== "N/A" && <span style={{ background: "#f1f5f9", borderRadius: 6, padding: "3px 8px", fontSize: 11, color: "#64748b" }}>⏱ {recipe.time}</span>}
       </div>
-
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, paddingTop: 14, borderTop: "1px solid #1a1a3a" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 14, borderTop: "1px solid #f1f5f9" }}>
         <div>
-          <StarDisplay rating={recipe.rating} />
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#64748b", marginTop: 2, display: "block" }}>
-            {recipe.reviews.toLocaleString()} reviews
-          </span>
+          <div style={{ fontSize: 13, color: "#f59e0b" }}>{"★".repeat(Math.round(recipe.rating))}{"☆".repeat(5 - Math.round(recipe.rating))}</div>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{recipe.reviews.toLocaleString()} reviews</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 10, color: "#64748b", marginBottom: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>CONFIDENCE</div>
-          <ConfidenceMeter value={recipe.confidence} />
+          <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>Confidence</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: tier.color }}>{recipe.confidence.toFixed(1)}%</div>
         </div>
       </div>
     </div>
   );
 }
 
-function RecipeModal({ recipe, onClose }) {
-  if (!recipe) return null;
-  const tierColor = recipe.confidence >= 99 ? "#22c55e" : recipe.confidence >= 97 ? "#84cc16" : recipe.confidence >= 95 ? "#eab308" : "#f97316";
-  const emoji = getEmoji(recipe.title);
-
-  return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeSlideIn 0.2s ease" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#0d0d1f", border: "1px solid #1a1a3a", borderRadius: 20, padding: 28, maxWidth: 520, width: "100%", maxHeight: "85vh", overflowY: "auto", position: "relative" }}>
-        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "#1a1a3a", border: "none", borderRadius: 8, width: 32, height: 32, color: "#94a3b8", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
-
-        <div style={{ fontSize: 48, marginBottom: 12 }}>{emoji}</div>
-        <h2 style={{ fontSize: 24, fontWeight: 700, color: "#f8fafc", fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 8, paddingRight: 40 }}>{recipe.title}</h2>
-        <p style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1.6, marginBottom: 20 }}>{recipe.description || "A crowd-vetted recipe with high confidence scoring."}</p>
-
-        <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-          <div style={{ background: "#080816", borderRadius: 10, padding: "10px 16px", flex: 1, minWidth: 90, textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "#64748b", fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>RATING</div>
-            <StarDisplay rating={recipe.rating} />
-          </div>
-          <div style={{ background: "#080816", borderRadius: 10, padding: "10px 16px", flex: 1, minWidth: 90, textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "#64748b", fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>REVIEWS</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#e2e8f0", fontFamily: "'JetBrains Mono', monospace" }}>{recipe.reviews.toLocaleString()}</div>
-          </div>
-          <div style={{ background: "#080816", borderRadius: 10, padding: "10px 16px", flex: 1, minWidth: 90, textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "#64748b", fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>CONFIDENCE</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: tierColor, fontFamily: "'JetBrains Mono', monospace" }}>{recipe.confidence.toFixed(1)}%</div>
-          </div>
-        </div>
-
-        {recipe.time && recipe.time !== "N/A" && (
-          <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 12, fontFamily: "'JetBrains Mono', monospace" }}>
-            <span style={{ color: "#64748b" }}>Cook time:</span> {recipe.time}
-          </div>
-        )}
-
-        {recipe.ingredients && recipe.ingredients.length > 0 && (
-          <div style={{ marginBottom: 20 }}>
-            <h4 style={{ fontSize: 12, color: "#64748b", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, marginBottom: 10 }}>INGREDIENTS ({recipe.ingredients.length})</h4>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {recipe.ingredients.map((ing, i) => (
-                <div key={i} style={{ fontSize: 13, color: "#cbd5e1", padding: "6px 10px", background: "#080816", borderRadius: 6, borderLeft: `2px solid ${tierColor}33` }}>
-                  {ing}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div style={{ display: "flex", gap: 8 }}>
-          {recipe.url ? (
-            <a
-              href={recipe.url} target="_blank" rel="noopener noreferrer"
-              style={{
-                flex: 1, display: "block", textAlign: "center", background: tierColor + "18",
-                border: `1px solid ${tierColor}44`, borderRadius: 10, padding: "12px 20px",
-                color: tierColor, fontSize: 14, fontWeight: 600, textDecoration: "none",
-                fontFamily: "'Bricolage Grotesque', sans-serif",
-              }}
-            >
-              View Full Recipe →
-            </a>
-          ) : (
-            <div style={{ flex: 1, textAlign: "center", background: "#1a1a3a", borderRadius: 10, padding: "12px 20px", color: "#64748b", fontSize: 13, fontFamily: "'JetBrains Mono', monospace" }}>
-              Link available with scraped data
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatBox({ label, value, sub }) {
-  return (
-    <div style={{ background: "#0d0d1f", border: "1px solid #1a1a3a", borderRadius: 12, padding: "16px 20px", flex: "1 1 140px", minWidth: 140 }}>
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#64748b", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 28, fontWeight: 700, color: "#e2e8f0", lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#22c55e", marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
-}
-
-// ============================================================
-// MAIN APP
-// ============================================================
 export default function RecipeConfidenceEngine() {
   const [recipes, setRecipes] = useState(DEMO_RECIPES);
   const [dataSource, setDataSource] = useState("demo");
@@ -236,9 +162,7 @@ export default function RecipeConfidenceEngine() {
   const [minReviews, setMinReviews] = useState(500);
   const [minRating, setMinRating] = useState(4.5);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedSource, setSelectedSource] = useState("All");
   const [sortBy, setSortBy] = useState("confidence");
-  const [showExplainer, setShowExplainer] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [loadError, setLoadError] = useState("");
@@ -250,7 +174,7 @@ export default function RecipeConfidenceEngine() {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
       const recipeList = parsed.recipes || parsed;
       if (!Array.isArray(recipeList) || recipeList.length === 0) {
-        setLoadError("No valid recipes array found in the data.");
+        setLoadError("No valid recipes found in the data.");
         return false;
       }
       setRecipes(recipeList);
@@ -261,7 +185,7 @@ export default function RecipeConfidenceEngine() {
       setPasteText("");
       return true;
     } catch {
-      setLoadError("Invalid JSON. Make sure it's the output from the scraper.");
+      setLoadError("Invalid JSON format.");
       return false;
     }
   }, []);
@@ -275,21 +199,18 @@ export default function RecipeConfidenceEngine() {
   }, [loadRecipeData]);
 
   const categories = ["All", ...new Set(recipes.map(r => r.category).filter(Boolean).sort())];
-  const sources = ["All", ...new Set(recipes.map(r => r.source).filter(Boolean).sort())];
 
   const filtered = recipes
     .filter(r => {
       if (search) {
         const q = search.toLowerCase();
-        const matchTitle = r.title.toLowerCase().includes(q);
-        const matchDesc = (r.description || "").toLowerCase().includes(q);
-        const matchIngredients = (r.ingredients || []).some(ing => ing.toLowerCase().includes(q));
-        if (!matchTitle && !matchDesc && !matchIngredients) return false;
+        if (!r.title.toLowerCase().includes(q) &&
+            !(r.description || "").toLowerCase().includes(q) &&
+            !(r.ingredients || []).some(i => i.toLowerCase().includes(q))) return false;
       }
       if (r.reviews < minReviews) return false;
       if (r.rating < minRating) return false;
       if (selectedCategory !== "All" && r.category !== selectedCategory) return false;
-      if (selectedSource !== "All" && r.source !== selectedSource) return false;
       return true;
     })
     .sort((a, b) => {
@@ -299,165 +220,171 @@ export default function RecipeConfidenceEngine() {
       return 0;
     });
 
-  const avgConfidence = filtered.length ? (filtered.reduce((s, r) => s + r.confidence, 0) / filtered.length) : 0;
+  const topConfidence = filtered.length ? Math.max(...filtered.map(r => r.confidence)) : 0;
   const totalReviews = filtered.reduce((s, r) => s + r.reviews, 0);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#080816", color: "#e2e8f0", fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: #1a1a3a; border-radius: 2px; outline: none; cursor: pointer; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #22c55e; border-radius: 50%; cursor: pointer; border: 2px solid #080816; }
-        input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: #22c55e; border-radius: 50%; cursor: pointer; border: 2px solid #080816; }
-        ::selection { background: #22c55e33; color: #22c55e; }
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #080816; } ::-webkit-scrollbar-thumb { background: #1a1a3a; border-radius: 3px; }
-        textarea:focus, input:focus { border-color: #22c55e44 !important; }
+        body { background: #f8fafc; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: #e2e8f0; border-radius: 2px; outline: none; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #16a34a; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        a { text-decoration: none; }
       `}</style>
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px" }}>
-
-        {/* HEADER */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div style={{ width: 10, height: 10, background: "#22c55e", borderRadius: "50%", animation: "pulse 2s ease infinite" }} />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#22c55e", letterSpacing: 2, textTransform: "uppercase" }}>Recipe Confidence Engine</span>
+      {/* NAV */}
+      <nav style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 22 }}>🍽️</span>
+            <span style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", letterSpacing: -0.5 }}>RecipeIQ</span>
           </div>
-          <h1 style={{ fontSize: 36, fontWeight: 800, lineHeight: 1.1, color: "#f8fafc", marginBottom: 8 }}>
-            Never cook a bad recipe<br />
-            <span style={{ color: "#22c55e" }}>again.</span>
-          </h1>
-          <p style={{ fontSize: 15, color: "#64748b", maxWidth: 520, lineHeight: 1.5 }}>
-            Statistical confidence scoring powered by the Wilson Score algorithm. Higher reviews + higher ratings = higher probability the recipe delivers.
-          </p>
-
-          <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap", alignItems: "center" }}>
-            <button onClick={() => setShowExplainer(!showExplainer)}
-              style={{ background: "none", border: "1px solid #1a1a3a", borderRadius: 8, padding: "6px 14px", color: "#94a3b8", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer" }}>
-              {showExplainer ? "Hide" : "How"} confidence works →
-            </button>
-            <button onClick={() => setShowUpload(!showUpload)}
-              style={{ background: showUpload ? "#22c55e18" : "none", border: `1px solid ${showUpload ? "#22c55e44" : "#1a1a3a"}`, borderRadius: 8, padding: "6px 14px", color: showUpload ? "#22c55e" : "#94a3b8", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer" }}>
-              📂 Load scraped data
-            </button>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: dataSource === "demo" ? "#f59e0b" : "#22c55e" }} />
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#64748b" }}>
-                {dataSource === "demo" ? "Demo data (20 recipes)" : dataSource}
-              </span>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <a href="#how-it-works" style={{ fontSize: 14, color: "#64748b", fontWeight: 500, padding: "6px 10px", textDecoration: "none" }}>
+              How it works
+            </a>
+            <a href="#recipes" style={{ background: "#16a34a", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, color: "#fff", cursor: "pointer", fontWeight: 600, textDecoration: "none" }}>
+              Find recipes ↓
+            </a>
           </div>
-
-          {/* EXPLAINER */}
-          {showExplainer && (
-            <div style={{ marginTop: 12, background: "#0d0d1f", border: "1px solid #1a1a3a", borderRadius: 12, padding: 20, animation: "fadeSlideIn 0.3s ease" }}>
-              <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, fontFamily: "'JetBrains Mono', monospace" }}>
-                We use a <span style={{ color: "#22c55e" }}>Wilson Score Lower Bound</span> — the same algorithm Reddit uses for ranking. It answers: "Given the rating and number of reviews, what's the <em>worst-case</em> probability this recipe is good?"
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-                <div style={{ background: "#080816", borderRadius: 8, padding: 12 }}>
-                  <div style={{ fontSize: 11, color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>5★ with 10 reviews</div>
-                  <div style={{ fontSize: 18, color: "#eab308", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>~83% confidence</div>
-                  <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Small sample — could be fluky</div>
-                </div>
-                <div style={{ background: "#080816", borderRadius: 8, padding: 12 }}>
-                  <div style={{ fontSize: 11, color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>4.8★ with 10,000 reviews</div>
-                  <div style={{ fontSize: 18, color: "#22c55e", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>~99.5% confidence</div>
-                  <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Statistically bulletproof</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* UPLOAD PANEL */}
-          {showUpload && (
-            <div style={{ marginTop: 12, background: "#0d0d1f", border: "1px solid #1a1a3a", borderRadius: 12, padding: 20, animation: "fadeSlideIn 0.3s ease" }}>
-              <p style={{ fontSize: 12, color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace", marginBottom: 12 }}>
-                Load <span style={{ color: "#22c55e" }}>recipes_data.json</span> from the AllRecipes scraper:
-              </p>
-              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileUpload} style={{ display: "none" }} />
-                <button onClick={() => fileInputRef.current?.click()}
-                  style={{ flex: 1, background: "#22c55e18", border: "1px solid #22c55e44", borderRadius: 8, padding: "10px 16px", color: "#22c55e", fontSize: 13, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer" }}>
-                  Choose JSON file
-                </button>
-                <button onClick={() => { setRecipes(DEMO_RECIPES); setDataSource("demo"); setShowUpload(false); setMinReviews(500); setPasteText(""); setLoadError(""); }}
-                  style={{ background: "#1a1a3a", border: "1px solid #1a1a3a", borderRadius: 8, padding: "10px 16px", color: "#94a3b8", fontSize: 13, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer" }}>
-                  Reset to demo
-                </button>
-              </div>
-              <p style={{ fontSize: 11, color: "#64748b", fontFamily: "'JetBrains Mono', monospace", marginBottom: 8 }}>Or paste JSON directly:</p>
-              <textarea
-                value={pasteText}
-                onChange={e => setPasteText(e.target.value)}
-                placeholder='Paste contents of recipes_data.json here...'
-                style={{ width: "100%", height: 80, background: "#080816", border: "1px solid #1a1a3a", borderRadius: 8, padding: 10, color: "#e2e8f0", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", resize: "vertical", outline: "none" }}
-              />
-              {pasteText.trim() && (
-                <button onClick={() => loadRecipeData(pasteText.trim(), "Pasted data")}
-                  style={{ marginTop: 8, background: "#22c55e18", border: "1px solid #22c55e44", borderRadius: 8, padding: "8px 16px", color: "#22c55e", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer", width: "100%" }}>
-                  Load pasted data
-                </button>
-              )}
-              {loadError && <p style={{ color: "#ef4444", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", marginTop: 8 }}>{loadError}</p>}
-            </div>
-          )}
         </div>
+      </nav>
 
-        {/* STATS */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-          <StatBox label="Recipes Found" value={filtered.length} />
-          <StatBox label="Avg Confidence" value={avgConfidence ? avgConfidence.toFixed(1) + "%" : "—"} sub={avgConfidence >= 98 ? "● Extremely High" : avgConfidence >= 95 ? "● High" : ""} />
-          <StatBox label="Total Reviews" value={totalReviews >= 1000 ? (totalReviews / 1000).toFixed(0) + "K" : totalReviews.toLocaleString()} sub="crowd-validated" />
+      {/* HERO */}
+      <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)", padding: "80px 24px 72px", textAlign: "center" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "5px 14px", marginBottom: 24 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: "pulse 2s ease infinite" }} />
+          <span style={{ fontSize: 12, color: "#86efac", fontWeight: 500, letterSpacing: 0.5 }}>Statistically ranked recipes</span>
         </div>
+        <h1 style={{ fontSize: "clamp(36px, 5vw, 60px)", fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 20, letterSpacing: -1 }}>
+          Stop guessing which recipes<br />
+          <span style={{ color: "#4ade80" }}>will actually work.</span>
+        </h1>
+        <p style={{ fontSize: "clamp(15px, 2vw, 19px)", color: "#94a3b8", maxWidth: 560, margin: "0 auto 12px", lineHeight: 1.7 }}>
+          We score every recipe by its real probability of success — using thousands of home cook reviews and real statistics. Not just star ratings.
+        </p>
+        <p style={{ fontSize: 14, color: "#475569", marginBottom: 48 }}>No more wasted grocery runs. No more dinner disasters.</p>
+        <div style={{ display: "flex", justifyContent: "center", gap: 48, flexWrap: "wrap" }}>
+          {[
+            { value: recipes.length + "+", label: "Recipes ranked" },
+            { value: (totalReviews / 1000).toFixed(0) + "k+", label: "Reviews analyzed" },
+            { value: topConfidence.toFixed(1) + "%", label: "Top confidence score" },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 32, fontWeight: 900, color: "#fff", letterSpacing: -1 }}>{s.value}</div>
+              <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* HOW IT WORKS — always visible */}
+      <div id="how-it-works" style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "56px 24px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 36 }}>
+            <h2 style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", marginBottom: 12 }}>Why star ratings alone mislead you</h2>
+            <p style={{ fontSize: 16, color: "#64748b", lineHeight: 1.7, maxWidth: 580, margin: "0 auto" }}>
+              A 5★ recipe with 6 reviews could just be the chef's friends. A 4.7★ recipe with 18,000 reviews is proven by thousands of real home cooks.
+              RecipeIQ uses the <strong style={{ color: "#0f172a" }}>Wilson Score</strong> — the same math Reddit uses to rank posts — to surface recipes with genuine track records.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            {[
+              { emoji: "🎲", title: "5★ · 6 reviews", score: "~72% confidence", note: "Could just be lucky", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+              { emoji: "📈", title: "4.7★ · 500 reviews", score: "~98% confidence", note: "Strong track record", color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
+              { emoji: "🏆", title: "4.8★ · 18,000 reviews", score: "~99.8% confidence", note: "Statistically bulletproof", color: "#15803d", bg: "#f0fdf4", border: "#86efac" },
+            ].map(s => (
+              <div key={s.title} style={{ background: s.bg, border: `1.5px solid ${s.border}`, borderRadius: 16, padding: 24 }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>{s.emoji}</div>
+                <div style={{ fontSize: 14, color: "#64748b", marginBottom: 8, fontWeight: 600 }}>{s.title}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: s.color, marginBottom: 6 }}>{s.score}</div>
+                <div style={{ fontSize: 13, color: "#94a3b8" }}>{s.note}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* UPLOAD PANEL — hidden by default, accessible via state */}
+      {showUpload && (
+        <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "24px" }}>
+          <div style={{ maxWidth: 600, margin: "0 auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <p style={{ fontSize: 13, color: "#64748b" }}>Load <strong>recipes_data.json</strong> from the scraper:</p>
+              <button onClick={() => setShowUpload(false)} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 18 }}>×</button>
+            </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileUpload} style={{ display: "none" }} />
+              <button onClick={() => fileInputRef.current?.click()}
+                style={{ flex: 1, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "10px 16px", color: "#16a34a", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                Choose JSON file
+              </button>
+              <button onClick={() => { setRecipes(DEMO_RECIPES); setDataSource("demo"); setShowUpload(false); setMinReviews(500); setPasteText(""); setLoadError(""); }}
+                style={{ background: "#f1f5f9", border: "none", borderRadius: 8, padding: "10px 16px", color: "#475569", fontSize: 13, cursor: "pointer" }}>
+                Reset to demo
+              </button>
+            </div>
+            <textarea value={pasteText} onChange={e => setPasteText(e.target.value)}
+              placeholder="Or paste JSON directly..."
+              style={{ width: "100%", height: 80, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 10, color: "#0f172a", fontSize: 13, resize: "vertical", outline: "none" }}
+            />
+            {pasteText.trim() && (
+              <button onClick={() => loadRecipeData(pasteText.trim(), "Pasted data")}
+                style={{ marginTop: 8, background: "#16a34a", border: "none", borderRadius: 8, padding: "10px 16px", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%" }}>
+                Load data
+              </button>
+            )}
+            {loadError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 8 }}>{loadError}</p>}
+            {dataSource !== "demo" && <p style={{ color: "#16a34a", fontSize: 12, marginTop: 8 }}>✓ Loaded: {dataSource}</p>}
+          </div>
+        </div>
+      )}
+
+      {/* MAIN */}
+      <div id="recipes" style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
 
         {/* FILTERS */}
-        <div style={{ background: "#0d0d1f", border: "1px solid #1a1a3a", borderRadius: 16, padding: 20, marginBottom: 24 }}>
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0", padding: 20, marginBottom: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
           <div style={{ position: "relative", marginBottom: 16 }}>
-            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#64748b", fontSize: 16 }}>⌕</span>
-            <input type="text" placeholder="Search recipes, ingredients..."
+            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: "#94a3b8" }}>🔍</span>
+            <input type="text" placeholder="Search recipes, ingredients, cuisines..."
               value={search} onChange={e => setSearch(e.target.value)}
-              style={{ width: "100%", background: "#080816", border: "1px solid #1a1a3a", borderRadius: 10, padding: "12px 14px 12px 40px", color: "#e2e8f0", fontSize: 14, fontFamily: "'Bricolage Grotesque', sans-serif", outline: "none" }}
+              style={{ width: "100%", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 14px 12px 42px", color: "#0f172a", fontSize: 15, outline: "none" }}
             />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+            {categories.map(c => (
+              <button key={c} onClick={() => setSelectedCategory(c)}
+                style={{
+                  background: selectedCategory === c ? "#0f172a" : "#f1f5f9",
+                  border: "none", borderRadius: 20, padding: "6px 14px",
+                  color: selectedCategory === c ? "#fff" : "#475569",
+                  fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.15s",
+                }}>{c}</button>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 16, alignItems: "end" }}>
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, color: "#64748b", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1 }}>MIN REVIEWS</span>
-                <span style={{ fontSize: 13, color: "#22c55e", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{minReviews.toLocaleString()}+</span>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: "#64748b", fontWeight: 500 }}>Minimum reviews</span>
+                <span style={{ fontSize: 13, color: "#16a34a", fontWeight: 700 }}>{minReviews.toLocaleString()}+</span>
               </div>
               <input type="range" min={50} max={10000} step={50} value={minReviews} onChange={e => setMinReviews(Number(e.target.value))} />
             </div>
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, color: "#64748b", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1 }}>MIN RATING</span>
-                <span style={{ fontSize: 13, color: "#f59e0b", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{minRating}★+</span>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: "#64748b", fontWeight: 500 }}>Minimum rating</span>
+                <span style={{ fontSize: 13, color: "#f59e0b", fontWeight: 700 }}>{minRating}★</span>
               </div>
               <input type="range" min={3} max={5} step={0.1} value={minRating} onChange={e => setMinRating(Number(e.target.value))} />
             </div>
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {categories.map(c => (
-              <button key={c} onClick={() => setSelectedCategory(c)}
-                style={{
-                  background: selectedCategory === c ? "#22c55e18" : "transparent",
-                  border: `1px solid ${selectedCategory === c ? "#22c55e44" : "#1a1a3a"}`,
-                  borderRadius: 8, padding: "5px 12px",
-                  color: selectedCategory === c ? "#22c55e" : "#64748b",
-                  fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer", transition: "all 0.2s",
-                }}>{c}</button>
-            ))}
-            <div style={{ width: 1, background: "#1a1a3a", margin: "0 4px" }} />
-            {sources.length > 2 && (
-              <select value={selectedSource} onChange={e => setSelectedSource(e.target.value)}
-                style={{ background: "#080816", border: "1px solid #1a1a3a", borderRadius: 8, padding: "5px 10px", color: "#94a3b8", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer", outline: "none" }}>
-                {sources.map(s => <option key={s} value={s}>{s === "All" ? "All Sources" : s}</option>)}
-              </select>
-            )}
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              style={{ background: "#080816", border: "1px solid #1a1a3a", borderRadius: 8, padding: "5px 10px", color: "#94a3b8", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: "pointer", outline: "none" }}>
+              style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 12px", color: "#475569", fontSize: 13, cursor: "pointer", outline: "none", height: 38 }}>
               <option value="confidence">Sort: Confidence</option>
               <option value="reviews">Sort: Most Reviewed</option>
               <option value="rating">Sort: Highest Rated</option>
@@ -465,14 +392,24 @@ export default function RecipeConfidenceEngine() {
           </div>
         </div>
 
-        {/* RECIPE GRID */}
+        {/* RESULTS BAR */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <p style={{ fontSize: 14, color: "#64748b" }}>
+            <strong style={{ color: "#0f172a" }}>{filtered.length}</strong> recipes found
+            {dataSource === "demo" && <span style={{ marginLeft: 8, background: "#fef3c7", color: "#92400e", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 10 }}>Demo data</span>}
+          </p>
+          <p style={{ fontSize: 13, color: "#94a3b8" }}>{(totalReviews / 1000).toFixed(0)}k reviews analyzed</p>
+        </div>
+
+        {/* GRID */}
         {filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748b" }}>
+          <div style={{ textAlign: "center", padding: "80px 20px", background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0" }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-            <p style={{ fontSize: 15 }}>No recipes match your filters. Try lowering the thresholds.</p>
+            <h3 style={{ fontSize: 18, color: "#0f172a", marginBottom: 8 }}>No recipes match your filters</h3>
+            <p style={{ fontSize: 14, color: "#64748b" }}>Try lowering the minimum reviews or rating threshold.</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
             {filtered.map((recipe, i) => (
               <RecipeCard key={recipe.id || i} recipe={recipe} index={i} onSelect={setSelectedRecipe} />
             ))}
@@ -480,26 +417,14 @@ export default function RecipeConfidenceEngine() {
         )}
 
         {/* FOOTER */}
-        <div style={{ marginTop: 40, padding: 24, background: "#0d0d1f", border: "1px solid #1a1a3a", borderRadius: 16 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: "#94a3b8", marginBottom: 12 }}>Pipeline: From scraper to live app</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[
-              { step: "1", text: "Run: python allrecipes_scraper.py", color: "#22c55e" },
-              { step: "2", text: "Outputs recipes_data.json with hundreds of vetted recipes + ingredients + links", color: "#3b82f6" },
-              { step: "3", text: "Click \"Load scraped data\" above → upload or paste the JSON", color: "#a855f7" },
-              { step: "4", text: "Click any recipe → see ingredients + link to original source", color: "#f59e0b" },
-              { step: "5", text: "Deploy to Netlify for a public URL (same as your other apps)", color: "#ef4444" },
-            ].map(s => (
-              <div key={s.step} style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: s.color + "18", border: `1px solid ${s.color}33`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: s.color, fontFamily: "'JetBrains Mono', monospace", flexShrink: 0 }}>{s.step}</div>
-                <span style={{ fontSize: 13, color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>{s.text}</span>
-              </div>
-            ))}
-          </div>
+        <div style={{ marginTop: 60, paddingTop: 32, borderTop: "1px solid #e2e8f0", textAlign: "center" }}>
+          <p style={{ fontSize: 22, marginBottom: 8 }}>🍽️</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>RecipeIQ</p>
+          <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 4 }}>Statistically-ranked recipes you can trust.</p>
+          <p style={{ fontSize: 12, color: "#cbd5e1" }}>Confidence scores powered by Wilson Score algorithm · Data sourced from AllRecipes</p>
         </div>
       </div>
 
-      {/* MODAL */}
       <RecipeModal recipe={selectedRecipe} onClose={() => setSelectedRecipe(null)} />
     </div>
   );
