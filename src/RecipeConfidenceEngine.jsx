@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 
 // ============================================================
 // DEMO DATA — used when no JSON file is loaded
