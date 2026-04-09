@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 const DEMO_RECIPES = [
   { id: 1, title: "Marry Me Chicken", source: "AllRecipes", rating: 4.9, reviews: 12847, category: "Dinner", time: "45 min", confidence: 99.7, description: "Creamy sun-dried tomato chicken that's earned its legendary status", url: "" },
@@ -189,6 +189,19 @@ export default function RecipeConfidenceEngine() {
       return false;
     }
   }, []);
+
+  // Auto-fetch bundled JSON on mount; falls back to DEMO_RECIPES silently if missing
+  useEffect(() => {
+    fetch("/recipes_data.json")
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => loadRecipeData(data, "recipes_data.json"))
+      .catch(() => {
+        // File not found or parse error — keep DEMO_RECIPES as-is
+      });
+  }, [loadRecipeData]);
 
   const handleFileUpload = useCallback((e) => {
     const file = e.target.files[0];
