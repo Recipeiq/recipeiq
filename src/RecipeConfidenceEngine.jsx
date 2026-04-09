@@ -60,9 +60,14 @@ function RecipeModal({ recipe, onClose }) {
   const emoji = getEmoji(recipe.title);
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 20, padding: 28, maxWidth: 500, width: "100%", maxHeight: "88vh", overflowY: "auto", position: "relative", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
-        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "#f1f5f9", border: "none", borderRadius: 50, width: 32, height: 32, color: "#64748b", fontSize: 18, cursor: "pointer" }}>×</button>
-        <div style={{ fontSize: 44, marginBottom: 10 }}>{emoji}</div>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 20, overflow: "hidden", maxWidth: 500, width: "100%", maxHeight: "88vh", overflowY: "auto", position: "relative", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,0.9)", border: "none", borderRadius: 50, width: 32, height: 32, color: "#64748b", fontSize: 18, cursor: "pointer", zIndex: 10 }}>×</button>
+        {recipe.image ? (
+          <img src={recipe.image} alt={recipe.title} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} onError={e => { e.target.style.display = "none"; }} />
+        ) : (
+          <div style={{ fontSize: 44, padding: "28px 28px 0" }}>{emoji}</div>
+        )}
+        <div style={{ padding: 28, paddingTop: recipe.image ? 20 : 10 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: tier.bg, border: `1px solid ${tier.border}`, borderRadius: 20, padding: "3px 10px", marginBottom: 10 }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: tier.color, display: "inline-block" }} />
           <span style={{ fontSize: 12, fontWeight: 600, color: tier.color }}>{tier.label} Recipe</span>
@@ -104,6 +109,7 @@ function RecipeModal({ recipe, onClose }) {
             Full recipe link available with live data
           </div>
         )}
+        </div>
       </div>
     </div>
   );
@@ -128,9 +134,14 @@ function RecipeCard({ recipe, index, onSelect }) {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
         <span style={{ fontSize: 32 }}>{emoji}</span>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: tier.bg, border: `1px solid ${tier.border}`, borderRadius: 20, padding: "3px 10px" }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: tier.color, display: "inline-block", flexShrink: 0 }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: tier.color }}>{tier.label}</span>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {recipe.source && recipe.source !== "AllRecipes" && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#6366f1", background: "#eef2ff", borderRadius: 10, padding: "2px 7px" }}>{recipe.source}</span>
+          )}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: tier.bg, border: `1px solid ${tier.border}`, borderRadius: 20, padding: "3px 10px" }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: tier.color, display: "inline-block", flexShrink: 0 }} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: tier.color }}>{tier.label}</span>
+          </div>
         </div>
       </div>
       <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 700, color: "#0f172a", lineHeight: 1.3 }}>{recipe.title}</h3>
