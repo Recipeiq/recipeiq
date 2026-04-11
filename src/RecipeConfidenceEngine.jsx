@@ -610,8 +610,7 @@ export default function RecipeConfidenceEngine() {
         {/* FOOTER */}
         <div style={{ marginTop: 72, paddingTop: 36, borderTop: "1px solid #e2e8f0", textAlign: "center" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 10 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 8, background: "linear-gradient(135deg, #22c55e, #16a34a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#fff", fontFamily: "'Bricolage Grotesque'" }}>R</div>
-            <span style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", letterSpacing: -0.5, fontFamily: "'Bricolage Grotesque'" }}>RecipeIQ</span>
+            <img src="/recipeiq-logo-icon.png" alt="RecipeIQ" style={{ height: 40, width: "auto" }} />
           </div>
           <p style={{ fontSize: 14, color: "#94a3b8", marginBottom: 4, fontWeight: 500 }}>Every recipe is a bet. Know the odds.</p>
           <p style={{ fontSize: 12, color: "#cbd5e1" }}>Confidence scores powered by Wilson Score Lower Bound · Data from AllRecipes & Food.com</p>
