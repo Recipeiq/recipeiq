@@ -411,7 +411,7 @@ export default function RecipeConfidenceEngine() {
       </nav>
 
       {/* HERO */}
-      <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)", borderBottom: "1px solid #e2e8f0", padding: "88px 28px 72px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: "linear-gradient(135deg, ""#ffffff" 0%, #1e3a5f 50%, #0f172a 100%)", borderBottom: "1px solid #e2e8f0", padding: "88px 28px 72px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         {/* Subtle background pattern */}
         <div style={{ position: "absolute", inset: 0, opacity: 0.03, backgroundImage: "radial-gradient(circle at 1px 1px, #16a34a 1px, transparent 0)", backgroundSize: "32px 32px", pointerEvents: "none" }} />
 
@@ -425,7 +425,7 @@ export default function RecipeConfidenceEngine() {
             The <span style={{ color: "#16a34a" }}>Rotten Tomatoes</span><br/>for recipes.
           </h1>
 
-          <p style={{ fontSize: "clamp(20px, 3vw, 26px)", color: "#475569", fontWeight: 700, letterSpacing: -0.5, fontFamily: "'Bricolage Grotesque'", marginBottom: 18, animation: "floatUp 0.5s ease 0.12s both" }}>
+          <p style={{ fontSize: "clamp(20px, 3vw, 26px)", color: "#e2e8f0", fontWeight: 700, letterSpacing: -0.5, fontFamily: "'Bricolage Grotesque'", marginBottom: 18, animation: "floatUp 0.5s ease 0.12s both" }}>
             Every recipe is a bet. Know the odds.
           </p>
 
