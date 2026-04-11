@@ -480,7 +480,8 @@ export default function RecipeConfidenceEngine() {
       </div>
 
       {/* THE PROOF */}
-      <div id="proof" style={{ padding: "72px 28px", maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ background: "#fff" }}>
+<div id="proof" style={{ padding: "72px 28px", maxWidth: 900, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 44 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>The math doesn't lie</div>
           <h2 style={{ fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 800, color: "#0f172a", marginBottom: 12, letterSpacing: -1, fontFamily: "'Bricolage Grotesque'" }}>
@@ -492,6 +493,7 @@ export default function RecipeConfidenceEngine() {
         </div>
         <ProofComparison />
       </div>
+    </div>
 
       {/* UPLOAD */}
       {showUpload && (
