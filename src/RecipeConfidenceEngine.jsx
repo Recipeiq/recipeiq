@@ -413,7 +413,7 @@ export default function RecipeConfidenceEngine() {
       {/* HERO */}
     <div style={{ background: "linear-gradient(135deg, #ffffff 0%, #1e3a5f 50%, #0f172a 100%)", borderBottom: "1px solid #e2e8f0", padding: "88px 28px 72px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         {/* Subtle background pattern */}
-        <div style={{ position: "absolute", inset: 0, opacity: 0.03, backgroundImage: "radial-gradient(circle at 1px 1px, #16a34a 1px, transparent 0)", backgroundSize: "32px 32px", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, opacity: 0.0, backgroundImage: "radial-gradient(circle at 1px 1px, #16a34a 1px, transparent 0)", backgroundSize: "32px 32px", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 24, padding: "6px 16px", marginBottom: 32, animation: "floatUp 0.5s ease both" }}>
