@@ -531,6 +531,7 @@ export default function RecipeConfidenceEngine() {
       )}
 
       {/* RECIPES */}
+      <div style={{ background: "#f0fdf4" }}>
       <div id="recipes" style={{ maxWidth: 1200, margin: "0 auto", padding: "44px 28px" }}>
         <div style={{ marginBottom: 28 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>Browse recipes</div>
