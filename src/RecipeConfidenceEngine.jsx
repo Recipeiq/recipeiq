@@ -377,7 +377,7 @@ export default function RecipeConfidenceEngine() {
   const totalReviews = filtered.reduce((s, r) => s + r.reviews, 0);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafb", fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0f172a", fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -454,7 +454,7 @@ export default function RecipeConfidenceEngine() {
               { value: topConfidence, suffix: "%", label: "top confidence" },
             ].map(s => (
               <div key={s.label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 34, fontWeight: 900, color: "#0f172a", letterSpacing: -1, fontFamily: "'Bricolage Grotesque'" }}>
+                <div style={{ fontSize: 34, fontWeight: 900, color: "#ffffff", letterSpacing: -1, fontFamily: "'Bricolage Grotesque'" }}>
                   <AnimatedNumber value={s.value} suffix={s.suffix} />
                 </div>
                 <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 4, fontWeight: 500 }}>{s.label}</div>
