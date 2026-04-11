@@ -76,9 +76,9 @@ except ImportError:
 
 MIN_REVIEWS    = 50        # Uniform across all sources
 MAX_PER_SEARCH = 10        # Max recipe links to follow per search term
-MIN_DELAY      = 2         # Seconds between page loads (min)
-MAX_DELAY      = 4         # Seconds between page loads (max)
-HEADLESS       = True     # False = visible browser (better for avoiding blocks)
+MIN_DELAY      = 1         # Seconds between page loads (min) — was 2
+MAX_DELAY      = 2         # Seconds between page loads (max) — was 4
+HEADLESS       = True      # True = faster, False = visible (use if getting blocked)
 OUTPUT_FILE    = "recipes_data.json"
 
 # Set TEST_MODE = True to run 1 term per source (~10 min) to verify sites work
@@ -317,25 +317,20 @@ def get_foodcom_links(page):
 # ============================================================
 
 def scrape_recipe_page(page, url, source_name):
-    """Navigate to a recipe page and extract structured data.
-    Uses networkidle for JS-heavy sites, with a fallback to domcontentloaded."""
+    """Navigate to a recipe page and extract structured data."""
     try:
-        # Try networkidle first — waits for JS to finish rendering
         try:
-            page.goto(url, wait_until="networkidle", timeout=20000)
+            page.goto(url, wait_until="networkidle", timeout=8000)
         except Exception:
-            # Fallback: some pages never fully idle, just wait for DOM + extra time
-            page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            time.sleep(3)
+            page.goto(url, wait_until="domcontentloaded", timeout=15000)
+            time.sleep(1)
 
         human_delay()
         soup = BeautifulSoup(page.content(), "html.parser")
         recipe_data = extract_json_ld_recipe(soup)
 
-        # If JSON-LD not found, try waiting a bit more and re-parsing
-        # (handles sites that inject structured data slightly after DOM load)
         if not recipe_data:
-            time.sleep(3)
+            time.sleep(2)
             soup = BeautifulSoup(page.content(), "html.parser")
             recipe_data = extract_json_ld_recipe(soup)
 
