@@ -454,7 +454,7 @@ export default function RecipeConfidenceEngine() {
             ].map(s => (
               <div key={s.label} style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 34, fontWeight: 900, color: "#ffffff", letterSpacing: -1, fontFamily: "'Bricolage Grotesque'" }}>
-                  <AnimatedNumber value={s.value} suffix={s.suffix} />
+                  <AnimatedNumber key={s.value} value={s.value} suffix={s.suffix} />
                 </div>
                 <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 4, fontWeight: 500 }}>{s.label}</div>
               </div>
@@ -548,7 +548,8 @@ export default function RecipeConfidenceEngine() {
               style={{ width: "100%", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "13px 16px 13px 44px", color: "#0f172a", fontSize: 15, outline: "none" }}
             />
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+          <div style={{ display: "flex", overflowX: "auto", gap: 6, marginBottom: 16, paddingBottom: 4, WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}>
+            <style>{`.cat-scroll::-webkit-scrollbar { display: none; }`}</style>
             {categories.map(c => (
               <button key={c} onClick={() => setSelectedCategory(c)}
                 style={{
@@ -556,7 +557,7 @@ export default function RecipeConfidenceEngine() {
                   border: "none", borderRadius: 20, padding: "7px 16px",
                   color: selectedCategory === c ? "#fff" : "#64748b",
                   fontSize: 13, fontWeight: selectedCategory === c ? 700 : 500, cursor: "pointer",
-                  transition: "all 0.15s",
+                  transition: "all 0.15s", whiteSpace: "nowrap", flexShrink: 0,
                 }}>{c}</button>
             ))}
           </div>
@@ -585,13 +586,16 @@ export default function RecipeConfidenceEngine() {
         </div>
 
         {/* RESULTS */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <p style={{ fontSize: 14, color: "#64748b" }}>
             <strong style={{ color: "#0f172a", fontWeight: 800 }}>{filtered.length}</strong> recipes found
             {dataSource === "demo" && <span style={{ marginLeft: 10, background: "#fefce8", color: "#a16207", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 10, border: "1px solid #fef08a" }}>Demo data</span>}
           </p>
           <p style={{ fontSize: 13, color: "#cbd5e1" }}>{(totalReviews / 1000).toFixed(0)}k reviews analyzed</p>
         </div>
+        <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 18, fontWeight: 500 }}>
+          270,000+ real reviews · Wilson-score ranked · Zero influencer picks
+        </p>
 
         {filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "80px 20px", background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%)", borderRadius: 20, border: "1px solid #e2e8f0" }}>
