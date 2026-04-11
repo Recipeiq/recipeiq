@@ -450,11 +450,14 @@ export default function RecipeConfidenceEngine() {
             {[
               { value: recipes.length, suffix: "+", label: "recipes ranked" },
               { value: Math.round(totalReviews / 1000), suffix: "k+", label: "reviews analyzed" },
-              { value: topConfidence, suffix: "%", label: "top confidence" },
+              { value: topConfidence > 0 ? topConfidence : null, suffix: "%", label: "top confidence" },
             ].map(s => (
               <div key={s.label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 34, fontWeight: 900, color: "#ffffff", letterSpacing: -1, fontFamily: "'Bricolage Grotesque'" }}>
-                  <AnimatedNumber key={s.value} value={s.value} suffix={s.suffix} />
+                <div style={{ fontSize: 34, fontWeight: 900, color: "#ffffff", letterSpacing: -1, fontFamily: "'Bricolage Grotesque'", minWidth: 80 }}>
+                  {s.value !== null
+                    ? <AnimatedNumber key={s.value} value={s.value} suffix={s.suffix} />
+                    : <span style={{ opacity: 0.3 }}>—</span>
+                  }
                 </div>
                 <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 4, fontWeight: 500 }}>{s.label}</div>
               </div>
