@@ -537,6 +537,7 @@ export default function RecipeConfidenceEngine() {
           <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>Browse recipes</div>
           <h2 style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: -0.5, fontFamily: "'Bricolage Grotesque'" }}>Ranked by crowd confidence</h2>
         </div>
+        </div>
 
         {/* FILTERS */}
         <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", padding: 22, marginBottom: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
