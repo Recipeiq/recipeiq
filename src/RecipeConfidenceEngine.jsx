@@ -397,9 +397,9 @@ export default function RecipeConfidenceEngine() {
 
       {/* NAV */}
       <nav style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", height: 80, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", height: 70, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center" }}>
-  <img src="/recipeiq-logo-icon.png" alt="RecipeIQ" style={{ height: 72, width: "auto" }} />
+  <img src="/recipeiq-logo-icon.png" alt="RecipeIQ" style={{ height: 68, width: "auto" }} />
 </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <a href="#proof" style={{ fontSize: 13, color: "#64748b", fontWeight: 500, padding: "8px 12px", borderRadius: 8 }}>How it works</a>
