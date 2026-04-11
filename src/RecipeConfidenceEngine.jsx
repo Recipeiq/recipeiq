@@ -591,7 +591,7 @@ export default function RecipeConfidenceEngine() {
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "80px 20px", background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0" }}>
+          <div style={{ textAlign: "center", padding: "80px 20px", background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)", borderRadius: 20, border: "1px solid #e2e8f0" }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
             <h3 style={{ fontSize: 20, color: "#0f172a", marginBottom: 8, fontFamily: "'Bricolage Grotesque'", fontWeight: 800 }}>No recipes match those filters</h3>
             <p style={{ fontSize: 14, color: "#94a3b8" }}>Try lowering the minimum reviews or rating.</p>
