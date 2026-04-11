@@ -101,6 +101,10 @@ function RecipeModal({ recipe, onClose }) {
         )}
         {recipe.url ? (
           <a href={recipe.url} target="_blank" rel="noopener noreferrer"
+  onClick={() => window.gtag?.('event', 'outbound_click', {
+    recipe_title: recipe.title,
+    destination: recipe.url,
+  })}
             style={{ display: "block", textAlign: "center", background: "#16a34a", borderRadius: 12, padding: "13px 20px", color: "#fff", fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
             View Full Recipe →
           </a>
@@ -123,7 +127,15 @@ function RecipeCard({ recipe, index, onSelect }) {
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => onSelect(recipe)}
+      onClick={() => {
+  window.gtag?.('event', 'recipe_view', {
+    recipe_title: recipe.title,
+    recipe_category: recipe.category,
+    recipe_confidence: recipe.confidence,
+    recipe_source: recipe.source,
+  });
+  onSelect(recipe);
+}}
       style={{
         background: "#fff", border: `1.5px solid ${hovered ? tier.border : "#e2e8f0"}`,
         borderRadius: 16, padding: 20, cursor: "pointer", transition: "all 0.2s ease",
@@ -383,7 +395,10 @@ export default function RecipeConfidenceEngine() {
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
             {categories.map(c => (
-              <button key={c} onClick={() => setSelectedCategory(c)}
+              <button key={c} onClick={() => {
+  setSelectedCategory(c);
+  window.gtag?.('event', 'filter_category', { category: c });
+}}
                 style={{
                   background: selectedCategory === c ? "#0f172a" : "#f1f5f9",
                   border: "none", borderRadius: 20, padding: "6px 14px",
