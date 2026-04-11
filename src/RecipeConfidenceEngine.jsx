@@ -399,9 +399,9 @@ export default function RecipeConfidenceEngine() {
       <nav style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #22c55e, #16a34a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff", fontFamily: "'Bricolage Grotesque'" }}>R</div>
-            <span style={{ fontSize: 19, fontWeight: 800, color: "#0f172a", letterSpacing: -0.5, fontFamily: "'Bricolage Grotesque'" }}>RecipeIQ</span>
-          </div>
+  <img src="/recipeiq-logo-icon.png" alt="RecipeIQ" style={{ height: 38, width: "auto" }} />
+  <span style={{ fontSize: 19, fontWeight: 800, color: "#0f172a", letterSpacing: -0.5, fontFamily: "'Bricolage Grotesque'" }}>RecipeIQ</span>
+</div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <a href="#proof" style={{ fontSize: 13, color: "#64748b", fontWeight: 500, padding: "8px 12px", borderRadius: 8 }}>How it works</a>
             <button onClick={() => setShowUpload(!showUpload)} style={{ fontSize: 13, color: "#64748b", fontWeight: 500, padding: "8px 12px", borderRadius: 8, background: "none", border: "none", cursor: "pointer" }}>Load data</button>
