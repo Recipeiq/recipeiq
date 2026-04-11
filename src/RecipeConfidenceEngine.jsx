@@ -411,7 +411,7 @@ export default function RecipeConfidenceEngine() {
       </nav>
 
       {/* HERO */}
-      <div style={{ background: "linear-gradient(135deg, "#ffffff" 0%, #1e3a5f 50%, #0f172a 100%)", borderBottom: "1px solid #e2e8f0", padding: "88px 28px 72px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+    <div style={{ background: "linear-gradient(135deg, #ffffff 0%, #1e3a5f 50%, #0f172a 100%)", borderBottom: "1px solid #e2e8f0", padding: "88px 28px 72px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         {/* Subtle background pattern */}
         <div style={{ position: "absolute", inset: 0, opacity: 0.03, backgroundImage: "radial-gradient(circle at 1px 1px, #16a34a 1px, transparent 0)", backgroundSize: "32px 32px", pointerEvents: "none" }} />
 
@@ -421,7 +421,7 @@ export default function RecipeConfidenceEngine() {
             <span style={{ fontSize: 13, color: "#16a34a", fontWeight: 600, letterSpacing: 0.3 }}>270,000+ reviews analyzed · Wilson-score ranked</span>
           </div>
 
-          <h1 style={{ fontSize: "clamp(40px, 6vw, 68px)", fontWeight: 800, color: "#0f172a", lineHeight: 1.08, letterSpacing: -2, fontFamily: "'Bricolage Grotesque'", animation: "floatUp 0.5s ease 0.08s both", maxWidth: 780, margin: "0 auto 20px" }}>
+          <h1 style={{ fontSize: "clamp(40px, 6vw, 68px)", fontWeight: 800, color: "#ffffff", lineHeight: 1.08, letterSpacing: -2, fontFamily: "'Bricolage Grotesque'", animation: "floatUp 0.5s ease 0.08s both", maxWidth: 780, margin: "0 auto 20px" }}>
             The <span style={{ color: "#16a34a" }}>Rotten Tomatoes</span><br/>for recipes.
           </h1>
 
