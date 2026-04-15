@@ -105,7 +105,7 @@ OUTPUT_FILE    = "recipes_data.json"
 TEST_MODE      = False
 
 # Set TIPS_ONLY = True to backfill crowd_tips on existing JSON without re-scraping
-TIPS_ONLY      = False
+TIPS_ONLY      = True
 
 # Minimum visible review texts needed before calling Claude API
 MIN_REVIEWS_FOR_TIPS = 3
@@ -308,54 +308,72 @@ def build_recipe(recipe_data, url, source_name):
 def extract_review_texts(page):
     """
     Extract visible review text from the current recipe page.
-    Targets top-loaded reviews without pagination.
+    Prioritizes JSON-LD review array (most reliable), then falls
+    back to broad HTML scraping across many possible class names.
     Returns a list of review strings.
     """
     reviews = []
     try:
         # Scroll to trigger review section lazy-load
-        for _ in range(3):
+        for _ in range(5):
             page.evaluate("window.scrollBy(0, window.innerHeight)")
-            time.sleep(0.6)
+            time.sleep(0.8)
 
         soup = BeautifulSoup(page.content(), "html.parser")
 
-        # AllRecipes + Food.com review selectors in priority order
-        selectors = [
-            {"class": re.compile(r"review-container|reviewBody|review__text", re.I)},
-            {"itemprop": "reviewBody"},
-            {"class": re.compile(r"feedback-list|user-comment", re.I)},
-        ]
-        for selector in selectors:
-            elements = soup.find_all(attrs=selector)
-            if elements:
-                for el in elements[:15]:
-                    text = el.get_text(separator=" ", strip=True)
-                    if len(text) > 30:
-                        reviews.append(text)
-                if reviews:
-                    break
+        # STRATEGY 1: JSON-LD review array (most reliable, works on both sites)
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                ld = json.loads(script.string)
+                candidates = ld if isinstance(ld, list) else [ld]
+                for item in candidates:
+                    if not isinstance(item, dict):
+                        continue
+                    t = item.get("@type", "")
+                    if t == "Recipe" or (isinstance(t, list) and "Recipe" in t):
+                        for rv in item.get("review", [])[:15]:
+                            body = rv.get("reviewBody", "")
+                            if body and len(body) > 30:
+                                reviews.append(body)
+                        break
+            except Exception:
+                continue
 
-        # Fallback: pull reviewBody from JSON-LD review array
-        if not reviews:
-            for script in soup.find_all("script", type="application/ld+json"):
-                try:
-                    ld = json.loads(script.string)
-                    candidates = ld if isinstance(ld, list) else [ld]
-                    for item in candidates:
-                        if not isinstance(item, dict):
-                            continue
-                        if item.get("@type") == "Recipe" and "review" in item:
-                            for rv in item["review"][:15]:
-                                body = rv.get("reviewBody", "")
-                                if body and len(body) > 30:
-                                    reviews.append(body)
-                            break
-                except Exception:
-                    continue
+        if reviews:
+            return reviews
+
+        # STRATEGY 2: itemprop="reviewBody" (semantic HTML)
+        for el in soup.find_all(attrs={"itemprop": "reviewBody"})[:15]:
+            text = el.get_text(separator=" ", strip=True)
+            if len(text) > 30:
+                reviews.append(text)
+
+        if reviews:
+            return reviews
+
+        # STRATEGY 3: Broad class name sweep — covers AllRecipes + Food.com variations
+        patterns = [
+            re.compile(r"review", re.I),
+            re.compile(r"comment", re.I),
+            re.compile(r"feedback", re.I),
+            re.compile(r"user.text", re.I),
+            re.compile(r"rating.text", re.I),
+        ]
+        seen = set()
+        for pattern in patterns:
+            for el in soup.find_all(attrs={"class": pattern})[:30]:
+                text = el.get_text(separator=" ", strip=True)
+                # Must be substantial, not a heading or label
+                if len(text) > 60 and text not in seen:
+                    seen.add(text)
+                    reviews.append(text)
+            if len(reviews) >= 5:
+                break
+
     except Exception:
         pass
-    return reviews
+
+    return reviews[:15]
 
 
 def generate_crowd_tips(recipe_name, reviews, client):
@@ -393,7 +411,6 @@ def generate_crowd_tips(recipe_name, reviews, client):
         parsed = json.loads(raw)
         tips = parsed.get("tips", [])
         if isinstance(tips, list) and all(isinstance(t, str) for t in tips):
-            time.sleep(2)
             return tips[:3]
     except Exception as e:
         print(f"      ⚠ Tips API error: {e}")

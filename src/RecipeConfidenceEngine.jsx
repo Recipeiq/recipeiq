@@ -173,6 +173,27 @@ function RecipeModal({ recipe, onClose }) {
             <div style={{ fontSize: 14, color: "#64748b", marginBottom: 16, display: "flex", alignItems: "center", gap: 6, fontFamily: "'DM Sans'" }}>⏱ {recipe.time} cook time</div>
           )}
 
+          {/* ── CROWD INTELLIGENT TWEAKS ── */}
+          {recipe.crowd_tips && recipe.crowd_tips.length > 0 && (
+            <div style={{ marginBottom: 24, background: "linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%)", border: "1.5px solid #bbf7d0", borderRadius: 16, overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px 10px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid #d1fae5" }}>
+                <span style={{ fontSize: 18 }}>🧠</span>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: 1.2, fontFamily: "'DM Sans'" }}>Crowd Intelligent Tweaks</div>
+                  <div style={{ fontSize: 11, color: "#86efac", fontWeight: 500, fontFamily: "'DM Sans'" }}>Distilled from {recipe.reviews.toLocaleString()} real reviews</div>
+                </div>
+              </div>
+              <div style={{ padding: "10px 14px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {recipe.crowd_tips.map((tip, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#fff", borderRadius: 10, padding: "10px 14px", border: "1px solid #d1fae5", boxShadow: "0 1px 3px rgba(22,163,74,0.06)" }}>
+                    <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>💡</span>
+                    <span style={{ fontSize: 13, color: "#1e293b", fontWeight: 500, lineHeight: 1.45, fontFamily: "'DM Sans'" }}>{tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {recipe.ingredients && recipe.ingredients.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <h4 style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginBottom: 10, textTransform: "uppercase", letterSpacing: 1, fontFamily: "'DM Sans'" }}>Ingredients</h4>
