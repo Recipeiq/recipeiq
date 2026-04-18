@@ -655,8 +655,6 @@ export default function RecipeConfidenceEngine() {
         </div>
       </div>
       </div>
-      </div>
-      </div>
 
       <RecipeModal recipe={selectedRecipe} onClose={() => setSelectedRecipe(null)} />
     </div>
