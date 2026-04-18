@@ -1,21 +1,19 @@
 """
-RecipeIQ — Multi-Source Scraper v5
+RecipeIQ — Multi-Source Scraper v6
 ====================================
-Extends v4 with Crowd Intelligent Tweaks:
-- Scrapes top visible reviews from each recipe page
-- Passes reviews to Claude API → extracts 3 actionable crowd tips
-- Stores tips in JSON as `crowd_tips` field per recipe
-- Skips API call if recipe already has crowd_tips (safe to re-run)
-- TIPS_ONLY mode: backfill existing JSON without re-scraping
+Extends v5 with Spend With Pennies as a third source.
 
 SOURCE SELECTION RATIONALE:
-    AllRecipes — Primary anchor. Largest unbiased review pool,
-                 home cook audience, no celebrity/sponsor influence.
-    Food.com   — Formerly RecipeZaar. Large user-submitted recipe database,
-                 genuine home cook reviews, no celebrity/sponsor bias.
-                 NOTE: Food.com ratings trend high (4.5-5.0 range).
-                 Wilson Score handles this naturally — recipes with
-                 inflated ratings but low review counts rank lower.
+    AllRecipes         — Primary anchor. Largest unbiased review pool,
+                         home cook audience, no celebrity/sponsor influence.
+    Food.com           — Formerly RecipeZaar. Large user-submitted recipe database,
+                         genuine home cook reviews, no celebrity/sponsor bias.
+                         NOTE: Food.com ratings trend high (4.5-5.0 range).
+                         Wilson Score handles this naturally.
+    Spend With Pennies — High-volume home cook blog (Holly Nilsson). Uses standard
+                         WordPress Recipe Maker JSON-LD with ratingValue + ratingCount.
+                         Strong review counts on popular recipes (1000-3000+ votes).
+                         Clean recipe URLs, no Cloudflare blocking.
 
 EXCLUDED SOURCES (and why):
     Food Network   — celebrity fandom inflates ratings, sponsor bias
@@ -33,8 +31,8 @@ INTEGRITY NOTE:
     MIN_REVIEWS = 50 applied uniformly across all sources.
 
 TEST MODE:
-    Set TEST_MODE = True  → skips AllRecipes, runs 2 Food.com pages only
-    Set TEST_MODE = False → full run of both sources (~60-90 min)
+    Set TEST_MODE = True  → skips AllRecipes, runs 2 Food.com pages + 1 SWP category
+    Set TEST_MODE = False → full run of all three sources (~90-120 min)
 
 TIPS_ONLY MODE:
     Set TIPS_ONLY = True  → loads existing recipes_data.json, visits each
@@ -51,15 +49,16 @@ SETUP (one time):
     Mac/Linux: export ANTHROPIC_API_KEY=sk-ant-...
 
 USAGE:
-    python recipeiq_scraper_v5.py
+    python recipeiq_scraper_v6.py
 
 OUTPUT:
-    recipes_data.json  (drop-in replacement for v4 output, with crowd_tips)
+    recipes_data.json  (drop-in replacement for v5 output, with crowd_tips)
 
 EXPECTED YIELD (full run):
-    AllRecipes: ~300 recipes
-    Food.com:   ~200 recipes
-    Total:      ~450 recipes (after dedup by title)
+    AllRecipes:         ~300 recipes
+    Food.com:           ~200 recipes
+    Spend With Pennies: ~100 recipes
+    Total:              ~550 recipes (after dedup by title)
 """
 
 import json
@@ -105,7 +104,7 @@ OUTPUT_FILE    = "recipes_data.json"
 TEST_MODE      = False
 
 # Set TIPS_ONLY = True to backfill crowd_tips on existing JSON without re-scraping
-TIPS_ONLY      = True
+TIPS_ONLY      = False
 
 # Minimum visible review texts needed before calling Claude API
 MIN_REVIEWS_FOR_TIPS = 3
@@ -174,10 +173,52 @@ FOODCOM_URLS_FULL = [
     "https://www.food.com/ideas/comfort-food-6505/slow-cooker-6508",
 ]
 
-# In TEST_MODE: skip AllRecipes, use just 2 Food.com category pages
+# In TEST_MODE: skip AllRecipes, use just 2 Food.com category pages + 1 SWP page
 ALLRECIPES_TERMS = [] if TEST_MODE else ALLRECIPES_TERMS_FULL
 FOODCOM_URLS     = ["https://www.food.com/recipe/all/top-rated?pn=1",
                     "https://www.food.com/recipe/all/top-rated?pn=2"] if TEST_MODE else FOODCOM_URLS_FULL
+
+
+# ============================================================
+# SPEND WITH PENNIES — category pages
+# ============================================================
+
+# SWP base category URLs — scraper will paginate each up to SWP_MAX_PAGES deep
+SWP_BASE_CATEGORIES = [
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/",
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/chicken-main-dishes/",
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/beef-main-dishes/",
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/beef-main-dishes/ground-beef/",
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/pork/",
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/pasta/",
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/casseroles/",
+    "https://www.spendwithpennies.com/category/recipes/main-dishes/seafood/",
+    "https://www.spendwithpennies.com/category/recipes/soups-and-stews/",
+    "https://www.spendwithpennies.com/category/recipes/side-dishes/",
+    "https://www.spendwithpennies.com/category/recipes/appetizers/",
+    "https://www.spendwithpennies.com/category/recipes/slow-cooker/",
+    "https://www.spendwithpennies.com/category/recipes/air-fryer/",
+    "https://www.spendwithpennies.com/category/recipes/breakfast-recipes/",
+    "https://www.spendwithpennies.com/category/recipes/baking-and-breads/",
+    "https://www.spendwithpennies.com/category/recipes/dessert-recipes/",
+]
+
+# How many pages deep to paginate per category (page 1, 2, 3...)
+SWP_MAX_PAGES = 3
+
+def build_swp_urls(base_categories, max_pages):
+    urls = []
+    for base in base_categories:
+        for p in range(1, max_pages + 1):
+            if p == 1:
+                urls.append(base)
+            else:
+                # WordPress pagination: base_url/page/N/
+                urls.append(base.rstrip('/') + f'/page/{p}/')
+    return urls
+
+SWP_URLS_FULL = build_swp_urls(SWP_BASE_CATEGORIES, SWP_MAX_PAGES)
+SWP_URLS = ["https://www.spendwithpennies.com/category/recipes/main-dishes/"] if TEST_MODE else SWP_URLS_FULL
 
 
 # ============================================================
@@ -655,6 +696,79 @@ def scrape_foodcom(page, seen_urls, all_recipes, client):
         human_delay()
 
 
+def get_swp_links(page):
+    return page.evaluate("""
+        () => {
+            const links = new Set();
+            // Pages that look like recipes but aren't
+            const blocklist = ['about', 'cookbook', 'saved-recipes', 'meal-planner',
+                               'privacy', 'contact', 'disclosure', 'policy', 'shop',
+                               'bundle', 'subscribe', 'newsletter', 'resources'];
+            document.querySelectorAll('a[href]').forEach(a => {
+                const href = a.href || '';
+                const slug = href.replace(/https?:\\/\\/www\\.spendwithpennies\\.com\\//, '').replace(/\\/$/, '');
+                if (href.match(/spendwithpennies\\.com\\/[a-z0-9][a-z0-9-]+\\/?$/) &&
+                    !href.match(/\\/category\\//) &&
+                    !href.match(/\\/author\\//) &&
+                    !href.match(/\\/tag\\//) &&
+                    !href.match(/\\/page\\//) &&
+                    !href.match(/\\/recipe-index/) &&
+                    !href.endsWith('spendwithpennies.com/') &&
+                    !blocklist.some(b => slug.includes(b))) {
+                    links.add(href.split('?')[0].replace(/\\/$/, '') + '/');
+                }
+            });
+            return Array.from(links);
+        }
+    """)
+
+
+def scrape_swp(page, seen_urls, all_recipes, client):
+    print("\n" + "=" * 60)
+    print("  SOURCE 3: Spend With Pennies")
+    print("=" * 60)
+
+    try:
+        page.goto("https://www.spendwithpennies.com/", wait_until="domcontentloaded", timeout=30000)
+        human_delay()
+        print("  ✅ Spend With Pennies homepage loaded")
+    except Exception:
+        print("  ⚠ Homepage slow, continuing anyway")
+
+    for idx, url in enumerate(SWP_URLS):
+        label = url.split("spendwithpennies.com/")[-1][:50]
+        print(f"\n  [{idx+1}/{len(SWP_URLS)}] 📂 {label}")
+
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            time.sleep(2)
+            # Scroll to load lazy-loaded recipe cards
+            for _ in range(5):
+                page.evaluate("window.scrollBy(0, window.innerHeight)")
+                time.sleep(0.8)
+
+            links = get_swp_links(page)
+            new_links = [l for l in links if l not in seen_urls][:30]  # Higher cap — SWP has ~39 links/page
+            print(f"  Found {len(links)} links ({len(new_links)} new)")
+
+            for link in new_links:
+                seen_urls.add(link)
+                recipe = scrape_recipe_page(page, link, "Spend With Pennies", client)
+                if recipe and recipe["reviews"] >= MIN_REVIEWS:
+                    all_recipes.append(recipe)
+                    tips_label = f"💡 {len(recipe['crowd_tips'])} tips" if recipe.get("crowd_tips") else "⚪ no tips"
+                    print(f"  ✅ {recipe['title'][:38]:38s} | {recipe['rating']}★ | {recipe['reviews']:>6,} reviews | {recipe['confidence']}% | {tips_label}")
+                elif recipe:
+                    print(f"  ⏭  {recipe['title'][:40]:40s} | {recipe['reviews']} reviews (below threshold)")
+                else:
+                    print(f"  ❌ Failed")
+
+        except Exception as e:
+            print(f"  ⚠ Error: {e}")
+
+        human_delay()
+
+
 # ============================================================
 # MAIN
 # ============================================================
@@ -674,9 +788,9 @@ def main():
         run_tips_only(client)
         return
 
-    mode_label = "TEST MODE (2 Food.com pages only)" if TEST_MODE else "FULL RUN"
-    print(f"🍳 RecipeIQ Multi-Source Scraper v5 — {mode_label}")
-    print(f"   Sources: AllRecipes + Food.com")
+    mode_label = "TEST MODE (2 Food.com pages + 1 SWP category)" if TEST_MODE else "FULL RUN"
+    print(f"🍳 RecipeIQ Multi-Source Scraper v6 — {mode_label}")
+    print(f"   Sources: Spend With Pennies + AllRecipes + Food.com")
     print(f"   Min reviews threshold: {MIN_REVIEWS} (uniform across all sources)")
     print(f"   Max recipes per search: {MAX_PER_SEARCH}")
     print(f"   Min reviews for tips: {MIN_REVIEWS_FOR_TIPS}")
@@ -705,6 +819,7 @@ def main():
         """)
         page = context.new_page()
 
+        scrape_swp(page, seen_urls, all_recipes, client)
         scrape_allrecipes(page, seen_urls, all_recipes, client)
         scrape_foodcom(page, seen_urls, all_recipes, client)
 
