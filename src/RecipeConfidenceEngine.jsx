@@ -334,8 +334,8 @@ export default function RecipeConfidenceEngine() {
   const [recipes, setRecipes] = useState(DEMO_RECIPES);
   const [dataSource, setDataSource] = useState("demo");
   const [search, setSearch] = useState("");
-  const [minReviews, setMinReviews] = useState(500);
-  const [minRating, setMinRating] = useState(4.5);
+  const [minReviews, setMinReviews] = useState(50);
+  const [minRating, setMinRating] = useState(4.0);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("confidence");
   const [showUpload, setShowUpload] = useState(false);
@@ -366,6 +366,17 @@ export default function RecipeConfidenceEngine() {
       .then(data => loadRecipeData(data, "recipes_data.json"))
       .catch(() => {});
   }, [loadRecipeData]);
+
+  // Secret D key shortcut to open the load data modal (hidden from nav)
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "d" && !e.ctrlKey && !e.metaKey && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+        setShowUpload(prev => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   const handleFileUpload = useCallback((e) => {
     const file = e.target.files[0];
@@ -418,13 +429,13 @@ export default function RecipeConfidenceEngine() {
 
       {/* NAV */}
       <nav style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 48px", height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center" }}>
   <img src="/recipeiq-logo-icon.png" alt="RecipeIQ" style={{ height: 52, width: "auto" }} />
 </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <a href="#proof" style={{ fontSize: 13, color: "#64748b", fontWeight: 500, padding: "8px 12px", borderRadius: 8 }}>How it works</a>
-            <button onClick={() => setShowUpload(!showUpload)} style={{ fontSize: 13, color: "#64748b", fontWeight: 500, padding: "8px 12px", borderRadius: 8, background: "none", border: "none", cursor: "pointer" }}>Load data</button>
+            
             <a href="#recipes" style={{ background: "#16a34a", borderRadius: 10, padding: "9px 18px", fontSize: 13, color: "#fff", fontWeight: 700, letterSpacing: 0.2 }}>Browse recipes</a>
           </div>
         </div>
@@ -438,7 +449,7 @@ export default function RecipeConfidenceEngine() {
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 24, padding: "6px 16px", marginBottom: 32, animation: "floatUp 0.5s ease both" }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#16a34a", display: "inline-block", animation: "pulse 2s ease infinite" }} />
-            <span style={{ fontSize: 13, color: "#16a34a", fontWeight: 600, letterSpacing: 0.3 }}>270,000+ reviews analyzed · Wilson-score ranked</span>
+            <span style={{ fontSize: 13, color: "#16a34a", fontWeight: 600, letterSpacing: 0.3 }}>376,000+ reviews analyzed · Wilson-score ranked</span>
           </div>
 
           <h1 style={{ fontSize: "clamp(40px, 6vw, 68px)", fontWeight: 800, color: "#ffffff", lineHeight: 1.08, letterSpacing: -2, fontFamily: "'Bricolage Grotesque'", animation: "floatUp 0.5s ease 0.08s both", maxWidth: 780, margin: "0 auto 20px" }}>
@@ -505,7 +516,7 @@ export default function RecipeConfidenceEngine() {
 
       {/* THE PROOF */}
       <div style={{ background: "#fff" }}>
-<div id="proof" style={{ padding: "72px 28px", maxWidth: 900, margin: "0 auto" }}>
+<div id="proof" style={{ padding: "72px 48px", maxWidth: 900, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 44 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>The math doesn't lie</div>
           <h2 style={{ fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 800, color: "#0f172a", marginBottom: 12, letterSpacing: -1, fontFamily: "'Bricolage Grotesque'" }}>
@@ -533,7 +544,7 @@ export default function RecipeConfidenceEngine() {
                 style={{ flex: 1, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 16px", color: "#16a34a", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                 Choose JSON file
               </button>
-              <button onClick={() => { setRecipes(DEMO_RECIPES); setDataSource("demo"); setShowUpload(false); setMinReviews(500); setPasteText(""); setLoadError(""); }}
+              <button onClick={() => { setRecipes(DEMO_RECIPES); setDataSource("demo"); setShowUpload(false); setMinReviews(50); setPasteText(""); setLoadError(""); }}
                 style={{ background: "#f1f5f9", border: "none", borderRadius: 10, padding: "10px 16px", color: "#475569", fontSize: 13, cursor: "pointer" }}>
                 Reset to demo
               </button>
@@ -556,7 +567,7 @@ export default function RecipeConfidenceEngine() {
 
       {/* RECIPES */}
       <div style={{ background: "#f0fdf4" }}>
-      <div id="recipes" style={{ maxWidth: 1200, margin: "0 auto", padding: "44px 28px" }}>
+      <div id="recipes" style={{ maxWidth: 1200, margin: "0 auto", padding: "44px 48px" }}>
         <div style={{ marginBottom: 28 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>Browse recipes</div>
           <h2 style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: -0.5, fontFamily: "'Bricolage Grotesque'" }}>Ranked by crowd confidence</h2>
@@ -618,7 +629,7 @@ export default function RecipeConfidenceEngine() {
           <p style={{ fontSize: 13, color: "#cbd5e1" }}>{(totalReviews / 1000).toFixed(0)}k reviews analyzed</p>
         </div>
         <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 18, fontWeight: 500 }}>
-          270,000+ real reviews · Wilson-score ranked · Zero influencer picks
+          376,000+ real reviews · Wilson-score ranked · Zero influencer picks
         </p>
 
         {filtered.length === 0 ? (
